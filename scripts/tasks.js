@@ -165,7 +165,7 @@ window.addEventListener("load", function () {
 
     nodoBotonesCambioEstado.forEach(btn => {
 
-      btn.addEventListener('click', function(e){
+      btn.addEventListener('click', function(){
 
 
         const terminada = btn.classList.contains('incompleta')
