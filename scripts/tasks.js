@@ -1,126 +1,128 @@
 // SEGURIDAD: Si no se encuentra en localStorage info del usuario
 // no lo deja acceder a la página, redirigiendo al login inmediatamente.
-(function comprobacion() {
-	const jwt = localStorage.getItem("jwt");
 
-	if (!jwt) {
-		location.replace("/");
-	}
-})();
+(function chequeo(){
+  
+const jwt = localStorage.getItem("jwt");
+
+if(!jwt){
+  location.replace("/")
+}
+})()
+
 
 /* ------ comienzan las funcionalidades una vez que carga el documento ------ */
-window.addEventListener("load", function () {
-	/* ---------------- variables globales y llamado a funciones ---------------- */
+window.addEventListener('load', function () {
 
-	const ENDPOINTBASE = "https://ctd-todo-api.herokuapp.com/v1";
-	const JWT = this.localStorage.getItem('jwt');
+  /* ---------------- variables globales y llamado a funciones ---------------- */
+  const nodoNombreUsuario = this.document.querySelector(".user-info p");
+  const btnCerrarSesion = this.document.querySelector("#closeApp");
+  const formCrearTarea = this.document.querySelector(".nueva-tarea");
+  const inputCrearTarea = this.document.querySelector("#nuevaTarea")
+  const cantidadTareasFinalizadas = this.document.querySelector("#cantidad-finalizadas");
+  const URLBASE = "https://ctd-todo-api.herokuapp.com/v1";
+  const JWT = localStorage.getItem("jwt");
+  const contenedorTareasPendientes = this.document.querySelector(".tareas-pendientes");
+  const contenedorTareasTerminadas = this.document.querySelector(".tareas-terminadas");
 
-  const btnCerrarSesion = this.document.querySelector('#closeApp');
-  const nodoNombreUsuario = this.document.querySelector('.user-info p');
-  const contenedorTareasPendientes = this.document.querySelector('.tareas-pendientes');
-  const contenedorTareasTerminadas = this.document.querySelector('.tareas-terminadas');
-  const formCrearTarea = this.document.querySelector('form.nueva-tarea');
-  const nodoTextoTarea = this.document.querySelector('#nuevaTarea');
 
-	/* -------------------------------------------------------------------------- */
-	/*                          FUNCIÓN 1 - Cerrar sesión                         */
-	/* -------------------------------------------------------------------------- */
+  /* -------------------------------------------------------------------------- */
+  /*                          FUNCIÓN 1 - Cerrar sesión                         */
+  /* -------------------------------------------------------------------------- */
 
-	btnCerrarSesion.addEventListener("click", function () {
+  btnCerrarSesion.addEventListener('click', function () {
+   localStorage.clear();
+   location.replace("/");
 
-    localStorage.clear();
-    location.replace('/');
-  });``
+  });
 
-	/* -------------------------------------------------------------------------- */
-	/*                 FUNCIÓN 2 - Obtener nombre de usuario [GET]                */
-	/* -------------------------------------------------------------------------- */
+  /* -------------------------------------------------------------------------- */
+  /*                 FUNCIÓN 2 - Obtener nombre de usuario [GET]                */
+  /* -------------------------------------------------------------------------- */
 
-	function obtenerNombreUsuario() {
+  function obtenerNombreUsuario() {
+   const url = `${URLBASE}/users/getMe`;
 
-    const url = ENDPOINTBASE + '/users/getMe'
-
-    const config = {
-      method: 'GET',
-      headers: {
-        authorization: JWT
-      }
+   const config = {
+    method: "GET",
+    headers: {
+      authorization: JWT
     }
+   }
 
-    fetch(url, config)
-    .then(res => res.json())
-    .then(data => nodoNombreUsuario.textContent = data.firstName)
-  }
+   fetch(url, config).then(res => res.json()).then(data => nodoNombreUsuario.textContent = data.firstName);
 
+  };
   obtenerNombreUsuario();
 
-	/* -------------------------------------------------------------------------- */
-	/*                 FUNCIÓN 3 - Obtener listado de tareas [GET]                */
-	/* -------------------------------------------------------------------------- */
 
-	function consultarTareas() {
+  /* -------------------------------------------------------------------------- */
+  /*                 FUNCIÓN 3 - Obtener listado de tareas [GET]                */
+  /* -------------------------------------------------------------------------- */
 
-    const url = ENDPOINTBASE + '/tasks';
+  function consultarTareas() {
+  const url = `${URLBASE}/tasks`;
 
-    const config = {
-      method: 'GET',
-      headers: {
-        authorization: JWT,
-      }
+   const config = {
+    method: "GET",
+    headers: {
+      authorization: JWT
     }
+   }
+   
+   fetch(url,config).then(res => res.json()).then(data => {
+    renderizarTareas(data)
+    cantidadTareasFinalizadas.textContent = data.filter(tarea => tarea.completed).length
+  });
 
-    fetch(url, config)
-    .then(res => res.json())
-    .then(data => {
-      renderizarTareas(data);
-      botonBorrarTarea();
-    })
-  }
+
+  };
   consultarTareas();
 
-	/* -------------------------------------------------------------------------- */
-	/*                    FUNCIÓN 4 - Crear nueva tarea [POST]                    */
-	/* -------------------------------------------------------------------------- */
+  /* -------------------------------------------------------------------------- */
+  /*                    FUNCIÓN 4 - Crear nueva tarea [POST]                    */
+  /* -------------------------------------------------------------------------- */
 
-	formCrearTarea.addEventListener("submit", function (e) {
-    e.preventDefault();
+  formCrearTarea.addEventListener('submit', function (event) {
+    event.preventDefault;
+    const url = `${URLBASE}/tasks`;
 
-    const url = ENDPOINTBASE + '/tasks';
-
-    const config = {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        authorization: JWT,
-      },
-      body: JSON.stringify({
-        description: nodoTextoTarea.value,
-        completed: false,
-      })
+    const body = {
+      description: inputCrearTarea.value,
+      completed: false
     }
 
-    fetch(url, config)
-    .then(res => res.json())
-    .then(data => consultarTareas())
-    
+    const config = {
+      method: "POST",
+      headers: {
+        authorization: JWT,
+        "Content-type": "application/json"
+      },
+      body: JSON.stringify(body)
+    }
+
+    fetch(url, config).then(res => res.json()).then(data => consultarTareas())
+
+
 
 
   });
 
-	/* -------------------------------------------------------------------------- */
-	/*                  FUNCIÓN 5 - Renderizar tareas en pantalla                 */
-	/* -------------------------------------------------------------------------- */
-	function renderizarTareas(listado) {
 
-    // filtramos las terminadas
-    const listadoTareasTerminadas = listado.filter( item => item.completed)
-    const listadoTareasPendientes = listado.filter( item => !item.completed)
+  /* -------------------------------------------------------------------------- */
+  /*                  FUNCIÓN 5 - Renderizar tareas en pantalla                 */
+  /* -------------------------------------------------------------------------- */
+  function renderizarTareas(listado) {
 
-    contenedorTareasPendientes.innerHTML = '';
-    contenedorTareasTerminadas.innerHTML = '';
+    const listadoPendientes = listado.filter(tarea => !tarea.completed);
+    const listadoTerminadas = listado.filter(tarea => tarea.completed);
+
+    contenedorTareasPendientes.innerHTML = "";
+    contenedorTareasTerminadas.innerHTML = "";
 
 
-    listadoTareasPendientes.forEach( tarea => {
+
+    listadoPendientes.forEach( tarea => {
       // por cada tarea inyectamos un nodo li
       contenedorTareasPendientes.innerHTML += `
       <li class="tarea" data-aos="fade-down">
@@ -133,7 +135,7 @@ window.addEventListener("load", function () {
       `
     })
     
-    listadoTareasTerminadas.forEach( tarea => {
+    listadoTerminadas.forEach( tarea => {
       // por cada tarea inyectamos un nodo li
       contenedorTareasTerminadas.innerHTML += `
       <li class="tarea" data-aos="fade-up">
@@ -150,27 +152,26 @@ window.addEventListener("load", function () {
       </li>
       `
     })
+    
 
-      
+
     botonesCambioEstado();
-  }
+    botonBorrarTarea();
+  };
 
-	/* -------------------------------------------------------------------------- */
-	/*                  FUNCIÓN 6 - Cambiar estado de tarea [PUT]                 */
-	/* -------------------------------------------------------------------------- */
+  /* -------------------------------------------------------------------------- */
+  /*                  FUNCIÓN 6 - Cambiar estado de tarea [PUT]                 */
+  /* -------------------------------------------------------------------------- */
+  function botonesCambioEstado() {
+    const botonesChange = this.document.querySelectorAll(".change");
 
-	function botonesCambioEstado() {
+    botonesChange.forEach(boton => {
 
-    const nodoBotonesCambioEstado = document.querySelectorAll('.change');
+      boton.addEventListener("click", function(){
+        
+        const terminada = boton.classList.contains("incompleta");
 
-    nodoBotonesCambioEstado.forEach(btn => {
-
-      btn.addEventListener('click', function(){
-
-
-        const terminada = btn.classList.contains('incompleta')
-
-        const url = ENDPOINTBASE + `/tasks/${btn.id}`;
+        const url = `${URLBASE}/tasks/${boton.id}`;
 
         const config = {
           method: 'PUT',
@@ -183,40 +184,43 @@ window.addEventListener("load", function () {
           })
         }
 
-        fetch(url, config)
-        .then(res => {
-          res.status === 200 ? consultarTareas(): alert("Hubo un error");
-          
-        })
+        fetch(url, config).then(res => res.json()).then(data => consultarTareas())
       })
     })
+    
+
+
+
   }
-  
-	/* -------------------------------------------------------------------------- */
-	/*                     FUNCIÓN 7 - Eliminar tarea [DELETE]                    */
-	/* -------------------------------------------------------------------------- */
-	function botonBorrarTarea() {
 
-    const nodoBotonesBorrar = document.querySelectorAll('.borrar');
 
-    nodoBotonesBorrar.forEach(btn => {
+  /* -------------------------------------------------------------------------- */
+  /*                     FUNCIÓN 7 - Eliminar tarea [DELETE]                    */
+  /* -------------------------------------------------------------------------- */
+  function botonBorrarTarea() {
+   const botonesBorrar = document.querySelectorAll(".borrar");
 
-      btn.addEventListener('click', function(e){
+   botonesBorrar.forEach(boton => {
+    boton.addEventListener("click", function(){
+      const url = `${URLBASE}/tasks/${boton.id}`;
 
-        const url = ENDPOINTBASE + `/tasks/${btn.getAttribute('id')}`;
+      const config = {
+      method: "DELETE",
+      headers: {
+        authorization: JWT
+      }
+    }
 
-        const config = {
-          method: 'DELETE',
-          headers: {
-            authorization: JWT,
-          },
-        }
-
-        fetch(url, config)
-        .then(res => {
-          res.status === 200 ? consultarTareas(): alert("Hubo un error");
-        })
-      })
+    fetch(url, config).then(res => res.json()).then(consultarTareas())
     })
-  }
+   })
+
+  };
+
 });
+
+  /* -------------------------------------------------------------------------- */
+  /*                     FUNCIÓN 8 - Actualizar numero de tareas                    */
+  /* -------------------------------------------------------------------------- */
+
+  a

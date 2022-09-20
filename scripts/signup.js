@@ -1,59 +1,51 @@
-window.addEventListener("load", function () {
-	/* ---------------------- obtenemos variables globales ---------------------- */
+window.addEventListener('load', function () {
+    /* ---------------------- obtenemos variables globales ---------------------- */
+   const form = this.document.querySelector("form");
+   const inputNombre = this.document.querySelector("#inputNombre");
+   const inputApellido = this.document.querySelector("#inputApellido");
+   const inputEmail = this.document.querySelector("#inputEmail");
+   const inputPassword = this.document.querySelector("#inputPassword");
+   const urlBase = "https://ctd-todo-api.herokuapp.com/v1";
 
-	const form = this.document.querySelector(".container form");
-	const inputNombre = this.document.querySelector("#inputNombre");
-	const inputApellido = this.document.querySelector("#inputApellido");
-	const inputEmail = this.document.querySelector("#inputEmail");
-	const inputPassword = this.document.querySelector("#inputPassword");
-	const inputPasswordRepetida = this.document.querySelector(
-		"#inputPasswordRepetida"
-	);
 
-	/* -------------------------------------------------------------------------- */
-	/*            FUNCIÓN 1: Escuchamos el submit y preparamos el envío           */
-	/* -------------------------------------------------------------------------- */
-	form.addEventListener("submit", function (e) {
-		e.preventDefault();
+    
 
-		let usuario;
+    /* -------------------------------------------------------------------------- */
+    /*            FUNCIÓN 1: Escuchamos el submit y preparamos el envío           */
+    /* -------------------------------------------------------------------------- */
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
 
-		if(validarTexto(inputNombre)
-			&& validarTexto(inputApellido)
-			&& validarEmail(inputEmail)
-			&& validarContrasenia(inputPassword)
-			&& compararContrasenias(inputPassword, inputPasswordRepetida))
-			{
-				usuario = {
-					firstName: normalizarTexto(inputNombre),
-					lastName: normalizarTexto(inputApellido),
-					email: normalizarEmail(inputEmail),
-					password: inputPassword.value,
-				};
-				
-				realizarRegister(usuario);
-		}
+      const body = {
+        firstName: inputNombre.value,
+        lastName: inputApellido.value,
+        email: inputEmail.value,
+        password: inputPassword.value
+      }
 
-	});
+      realizarRegister(body)
 
-	/* -------------------------------------------------------------------------- */
-	/*                    FUNCIÓN 2: Realizar el signup [POST]                    */
-	/* -------------------------------------------------------------------------- */
-	function realizarRegister(user) {
-		const url = "https://ctd-todo-api.herokuapp.com/v1/users";
 
-		const config = {
-			method: "POST",
-			headers: { "content-type": "application/json" },
-			body: JSON.stringify(user),
-		};
 
-		fetch(url, config)
-			.then((res) => res.json())
-			.then((data) => {
-				if (data) {
-					location.replace("/");
-				}
-			});
-	}
+    });
+
+    /* -------------------------------------------------------------------------- */
+    /*                    FUNCIÓN 2: Realizar el signup [POST]                    */
+    /* -------------------------------------------------------------------------- */
+    function realizarRegister(settings) {
+        const url = `${urlBase}/users`;
+
+        const config = {
+            method: "POST",
+            headers: {
+                "content-type": "application/json"
+            },
+            body: JSON.stringify(settings)
+          };
+
+          fetch(url, config).then(res => res.json()).then(data => location.replace("/"));
+
+    };
+
+
 });

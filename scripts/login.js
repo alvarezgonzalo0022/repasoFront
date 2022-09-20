@@ -1,60 +1,57 @@
-/* -------------------------------------------------------------------------- */
-/*   chequeamos que ya este logueado el usuario, a traves del local storage   */
-/* -------------------------------------------------------------------------- */
-
-(function comprobacion(){
-    const jwt = localStorage.getItem('jwt');
+(function chequeo(){
+  
+    const jwt = localStorage.getItem("jwt");
     
     if(jwt){
-        location.replace('/mis-tareas.html');
+      location.replace("/mis-tareas.html")
     }
-})();
+    })()
+
+window.addEventListener('load', function () {
+    /* ---------------------- obtenemos variables globales ---------------------- */
+   
+    const form = this.document.querySelector("form");   
+    const inputEmail = this.document.querySelector("#inputEmail");
+    const inputPassword = this.document.querySelector("#inputPassword");
+    const urlBase = "https://ctd-todo-api.herokuapp.com/v1"
 
 
 
-window.addEventListener("load", function () {
-	/* ---------------------- obtenemos variables globales ---------------------- */
+    /* -------------------------------------------------------------------------- */
+    /*            FUNCIÓN 1: Escuchamos el submit y preparamos el envío           */
+    /* -------------------------------------------------------------------------- */
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
 
-	const form = this.document.querySelector("form");
-	const inputEmail = this.document.querySelector("#inputEmail");
-	const inputPassword = this.document.querySelector("#inputPassword");
+       const body = {
+        email: inputEmail.value,
+        password: inputPassword.value,
+       }
 
-	/* -------------------------------------------------------------------------- */
-	/*            FUNCIÓN 1: Escuchamos el submit y preparamos el envío           */
-	/* -------------------------------------------------------------------------- */
-	form.addEventListener("submit", function (e) {
-
-        e.preventDefault();
-
-        const usuario = {
-            email: normalizarEmail(inputEmail),
-            password: inputPassword.value,
-        }
-
-        realizarLogin(usuario);
+       realizarLogin(body)
 
     });
 
-	/* -------------------------------------------------------------------------- */
-	/*                     FUNCIÓN 2: Realizar el login [POST]                    */
-	/* -------------------------------------------------------------------------- */
-	function realizarLogin(user) {
 
-        const url = 'https://ctd-todo-api.herokuapp.com/v1/users/login'
+    /* -------------------------------------------------------------------------- */
+    /*                     FUNCIÓN 2: Realizar el login [POST]                    */
+    /* -------------------------------------------------------------------------- */
+    function realizarLogin(settings) {
+        const url = `${urlBase}/users/login`;
+        
 
         const config = {
-            method: 'POST',
-            headers: {'content-type': 'application/json'},
-            body: JSON.stringify(user),
-        }
+            method: "POST",
+            headers:{
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(settings)
+           }
+        
+           fetch(url, config).then(res => res.json()).then(data =>{
+            location.replace("/mis-tareas.html");
+            localStorage.setItem("jwt", data.jwt)});
 
-        fetch(url, config)
-        .then(res => res.json())
-        .then(data => {
-            
-            localStorage.setItem('jwt', data.jwt);
-
-            location.replace('/mis-tareas.html');
-        })
+       
     }
 });
